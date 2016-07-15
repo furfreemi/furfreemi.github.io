@@ -1,3 +1,114 @@
+/*dark gray: #3b3b3b
+purple: #714e99*/
+
 body {
-    background-color: red;
+    color: blue;
+    margin:0px;
+    background-color:#fff;
+    overflow-x: hidden;
+}
+
+
+/*
+ MARK:
+ General classes
+*/
+
+
+.title{
+    font-family: 'Reenie Beanie', cursive;
+    text-align:center;
+    color: #fff;
+    font-size:76px;
+    line-height: 80%;
+    width:100%;
+    top:30%;
+    position:relative;
+}
+
+
+.nav, .subtitle{
+    font-family: 'Rubik', sans-serif;
+    text-align:center;
+
+    text-transform:uppercase;
+    color: #714e99;
+    font-size:14px;
+}
+
+.nav{
+    -o-transition:color .3s ease-in-out;
+    -ms-transition:color .3s ease-in-out;
+    -moz-transition:color .3s ease-in-out;
+    -webkit-transition:color .3s ease-in-out;
+    transition:color .3s ease-in-out;
+    text-decoration:none;
+    font-weight:bold;
+    font-size:15px;
+}
+
+.nav:hover{
+    color: #fff;
+    font-weight:bolder;
+    -o-transition:color .3s ease-in-out;
+    -ms-transition:color .3s ease-in-out;
+    -moz-transition:color .3s ease-in-out;
+    -webkit-transition:color .3s ease-in-out;
+    transition:color .3s ease-in-out;
+}
+
+
+
+/*
+ MARK:
+ Intro div
+*/
+
+.full_base, .left_base_purple, .left_base_gray, .right_base {
+    height:100vh;
+    width:100vw;
+    background-color:#333;
+    position:relative;
+    float:left;
+}
+
+#intro_subtitle {
+    width:100%;
+    top:10%;
+    position:absolute;
+}
+
+
+
+#intro_nav {
+    width:100%;
+    top:90%;
+    position:absolute;
+}
+
+
+
+/*
+ MARK:
+ About div
+*/
+
+
+.left_base_purple, .left_base_gray {
+    width:40vw;
+    left:0px;
+    background-color:#714e99;
+    float:left;
+
+}
+
+.left_base_gray {
+    background-color:#333;
+}
+
+.right_base {
+    width:56vw;
+    left:0px;
+    background-color:#fff;
+    float:left;
 }
