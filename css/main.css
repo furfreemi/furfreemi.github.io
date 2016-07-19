@@ -2,7 +2,6 @@
 purple: #714e99*/
 
 body {
-    color: blue;
     margin:0px;
     background-color:#fff;
     overflow-x: hidden;
@@ -55,6 +54,18 @@ body {
     -moz-transition:color .3s ease-in-out;
     -webkit-transition:color .3s ease-in-out;
     transition:color .3s ease-in-out;
+}
+
+
+.text_section{
+    font-family: 'Rubik', sans-serif;
+
+    top:7%;
+    height:86%;
+    overflow-y: auto;
+    width:85%;
+    left:10%;
+    position:relative;
 }
 
 
