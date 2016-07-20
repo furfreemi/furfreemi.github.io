@@ -59,11 +59,11 @@ body {
 
 .text_section{
     font-family: 'Rubik', sans-serif;
-
+    padding-right:20px;
     top:7%;
     height:86%;
     overflow-y: auto;
-    width:85%;
+    width:86%;
     left:10%;
     position:relative;
 }
