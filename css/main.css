@@ -49,6 +49,40 @@ body {
     position: absolute;
 }
 
+
+
+#main {
+    display:none;
+    width: 1081px;
+    height:700px;
+    background-image: url('../images/section_bg.png');
+    background-size: auto 100%;
+    background-repeat: no-repeat;
+    background-position: center top;
+    left:0; 
+    right:0;
+    top:0; 
+    bottom:0;
+    margin:auto;
+    max-width:100%;
+    max-height:100%;
+    min-width:1081px;
+    min-height:700px;
+    position:absolute;
+    overflow:auto;
+}
+
+
+#main-text {
+    display:none;
+    padding: 110px;
+    font-family: 'Rubik', sans-serif;
+    color: #242424;
+    font-size: 18px;
+    max-height: 500px;
+    overflow-y: scroll;
+}
+
 #menu {
     position: absolute;
     width: 50px;
