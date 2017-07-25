@@ -51,11 +51,12 @@ body {
 
 #menu {
     position: absolute;
-    width: 250px;
-    right: -200px;
-    bottom: -60px;
+    width: 50px;
+    right: 0px;
+    bottom: 0px;
     height: 500px;
-    background-image: url('../images/menu.png');
+    overflow:hidden;
+    background-image: url('../images/menu_crop.png');
     background-size: auto 100%;
     background-repeat: no-repeat;
     background-position: left top;
@@ -67,14 +68,14 @@ body {
 }
 
 #menu:hover {
-    right:-50px;
+    width:220px;
 }
 
 #menu-text{
     font-family: 'Rubik', sans-serif;
     position: absolute;
     top: 90px;
-    left: 55px;
+    left: 65px;
     color: #242424;
     font-size: 20px;
 }
