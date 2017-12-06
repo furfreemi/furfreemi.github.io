@@ -1,5 +1,5 @@
-$(document).ready(function() {
-	var bg = "Hi! My name is Larissa. I'm currently a student at Case Western Reserve University living in the awesome Cleveland, OH. \
+$(document).ready(function () {
+    var bg = "Hi! My name is Larissa. I'm currently a student at Case Western Reserve University living in the awesome Cleveland, OH. \
 					I'm slated to graduate in January, and am currently seeking a full time position somewhere in the computing industry. \
 					<br><br> \
 					I study computer and biomedical engineering, with the intention of going into software engineering. \
@@ -18,35 +18,34 @@ $(document).ready(function() {
 					as well as other tools including Matlab, Git, Subversion, Blender, PhotoShop, and SolidWorks.";
 
 
-
-	var contact = 'Feel free to reach out or check out any of my profiles:<br><br>\
+    var contact = 'Feel free to reach out or check out any of my profiles:<br><br>\
 					<a href="mailto:larissa.marcich@gmail.com" target="blank"><img src="./images/icons/mail.png" height="44px"/></a>\
 					<a href="https://www.linkedin.com/in/larissamarcich" target="blank"><img src="./images/branded_icons/linkedin.png" height="44px"/></a>\
 					<a href="https://www.pinterest.com/lmarcich/" target="blank"><img src="./images/branded_icons/pinterest.png" height="44px"/></a>\
 					<a href="https://github.com/furfreemi" target="blank"><img src="./images/branded_icons/github.png" height="44px"/></a>'
 
 
-	function setDisplay(id, display){
-		document.getElementById(id).style.display = display;
-	}
+    function setDisplay(id, display) {
+        document.getElementById(id).style.display = display;
+    }
 
-	function setText(text){
-		document.getElementById("main-text").innerHTML = text;
-	}
+    function setText(text) {
+        document.getElementById("main-text").innerHTML = text;
+    }
 
-	$("body").click(function(e) {
-    	var target = $(e.target).attr("id");
+    $("body").click(function (e) {
+        var target = $(e.target).attr("id");
 
-    	if (target == "menu" || target == "menu-text"){
-	    	setDisplay("header", "none");
-			setDisplay("main", "inline");
-			setDisplay("main-text", "block");
-	    	setText(bg);
-	    } else if (target != "main" && target != "main-text") {
-	        setDisplay("header", "inline");
-			setDisplay("main", "none");
-			setDisplay("main-text", "none");
-	    }
-	});
+        if (target === "menu" || target === "menu-text") {
+            setDisplay("header", "none");
+            setDisplay("main", "inline");
+            setDisplay("main-text", "block");
+            setText(bg);
+        } else if (target !== "main" && target !== "main-text") {
+            setDisplay("header", "inline");
+            setDisplay("main", "none");
+            setDisplay("main-text", "none");
+        }
+    });
 
 });
