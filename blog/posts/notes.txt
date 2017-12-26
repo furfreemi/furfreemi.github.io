@@ -1,0 +1,17 @@
+Testing: Legacy code and databases
+Spring MVC
+ORM/Hibernate
+Common Design Patterns
+Computer hardware/low-level programming
+Intro to React -> webpack -> enzyme
+IoT security
+OverTheWire war games learning
+Personal
+
+
+Blog schema:
+-title
+-subtitle
+-date
+-tags
+-body
