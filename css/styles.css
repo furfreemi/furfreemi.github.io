@@ -1,0 +1,32 @@
+body {
+  background-color: white;
+  color: #2E2E2E;
+  font-family: Roboto, Arial, sans-serif;
+}
+
+h1 {
+  color: #D60000;
+  border-bottom: 2px solid #D60000;  
+  width: 50%;
+}
+
+b {
+  color: #D60000;
+}
+
+a {
+  color: #000000;
+}
+
+a:hover {
+  color: #7A7A7A;
+}
+
+p {
+  line-height: 28px;
+  font-size: 18px;
+}
+
+#content {
+ margin: 50px; 
+}
