@@ -2,12 +2,16 @@ body {
   background-color: white;
   color: #2E2E2E;
   font-family: Roboto, Arial, sans-serif;
+  border-top: 2px solid #2E2E2E;
+  margin: 0px;
 }
 
 h1 {
   color: #D60000;
-  border-bottom: 2px solid #D60000;  
-  width: 50%;
+}
+
+h2 {
+  margin: 10px;
 }
 
 b {
@@ -29,4 +33,9 @@ p {
 
 #content {
  margin: 50px; 
+}
+
+#header {
+  border-bottom: 1px solid #2E2E2E;
+  padding: 0px 50px;
 }
