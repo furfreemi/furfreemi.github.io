@@ -74,7 +74,8 @@
         not some other individual's key who is now intercepting all our communication with A?
     </p>
     <p>
-        What CAs do is issue something called a <b>digital certificate</b>, which is basically a public key and a bunch of
+        What CAs do is issue something called a <b>digital certificate</b>, which is basically a public key and a bunch
+        of
         ownership information which is then digitally signed by the CA. This enables you to use someone's public key
         with a certain degree of certainty that that key actually belongs to the person you thing it does. This
         naturally leads us to an excellent follow-up question: who are the CAs, and why should we trust them?
@@ -91,6 +92,16 @@
     <h2>
         CRL
     </h2>
+    <h2>
+        What HTTPS isn't
+    </h2>
+    <p>
+        Example: apple.com vs app1e.com. Sometimes HTTPS could backfire- users see the little padlock and assume a site
+        is safe or secure or legit. Just because app1e.com has a CA-signed certificate, that doesn't mean the site
+        doesn't have nefarious intentions. HTTPS just means your information is encrypted, and the public key you've
+        used to set up that encryption actually belongs to a given site. That site could still be doing totally
+        malicious or illegitimate things with the data you're sending it.
+    </p>
 </div>
 </body>
 </html>
