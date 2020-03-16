@@ -46,14 +46,17 @@
     </p>
     <p>
         Take note of the difference: if we encrypt a message using someone's public key, we can be sure only they can
-        read it, as only they have their private key and thus the ability to decrypt our message. However, if we encrypt
+        read it, as only they have their private key and thus the ability to decrypt our message (confidentiality).
+        However, if we encrypt
         some value using our private key, anyone can decrypt it using our public key, but they will know the value came
-        from us if this decryption works as we're the only ones who could have encrypted with our private key. If we use
+        from us if this decryption works as we're the only ones who could have encrypted with our private key
+        (authentication). If we use
         our private key to encrypt some message's hash and then send this value along with the message, we can make sure
-        the message isn't tampered with: anyone reading the message can decrypt the related value with our public key
+        the message isn't tampered with (integrity): anyone reading the message can decrypt the related value with our
+        public key
         (thus seeing that the message was sent by us) and then validate the message's current hash matches this sent
         hash value (thus checking that the message is in the same state as when we sent it). Note that anyone can read
-        the message- there is no confidentiality.
+        the message when we've encrypted it using our private key- there is no confidentiality.
     </p>
     <p>
         Also note that the ideas of digital signatures and sending of confidential messages are coupled to two very key
@@ -79,10 +82,68 @@
         ownership information which is then digitally signed by the CA. This enables you to use someone's public key
         with a certain degree of certainty that that key actually belongs to the person you thing it does. This
         naturally leads us to an excellent follow-up question: who are the CAs, and why should we trust them?
+    </p><p>
+        Your browser (and potentially your computer) are set up with a default list of trusted CAs (root CAs). When requesting a webpage via TLS,
+        the server hosting this page will provide the browser with its certificate, which is signed by some CA (intermediate CA). The browser then checks that
+        there is a 'chain of trust' between one of its trusted root CAs and the intermediate CA which signed the server's certificate. That is, even if the browser
+    does not directly trust the CA who issued the site's certificate, one of the CAs it trusts might trust this CA, or one of the CAs it trusts might
+    trust another CA, which in turn trusts the issuing CA. In practice, the acceptable limit to the length of this trust chain is generally 3 levels
+    (with the 4th level being the site's certificate).
+</p><p>
+    In terms of certificates and digital signatures, root CAs all have 'self-signed' certificates. That is, their certificates are digitally signed by themselves- i.e. the
+    same public key contained within their certificate will be used in the digital signing of that certificate. These root CAs in turn are the ones to digitally sign trusted
+    intermediate CA certificates. Finally, these intermediate CAs are the ones to digitally sign leaf site certificates.
+</p><p>
+    You can see this chain of trust in practice by visiting a site over HTTPS and clicking the little padlock icon, and viewing certificate information.
+    You'll be able to visualize the signing from the root CA down to the leaf certificate.
+    Demo: click little lock icon
+</p><p>
+    Why do we bother with this chain of trust, rather than having the root CAs simply sign leaf certificates directly? One reason is to lessen damage if a
+    CA were to be compromised. If a CA is compromised (perhaps their private key is leaked), then none of the certificates they have signed can be trusted
+    anymore.
     </p>
     <h2>
         CSR
     </h2>
+    <p>
+        When a website wants to be issued a trusted certificate, they can first generate a new public and private key
+        pair locally. This way, we don't need to worry about ever transporting or sharing the private key. Next, this
+        public key is bundled with various metadata such as what organization this site belongs to, and which domain the
+        certificate will be covering- this is known as a Certificate Signing Request (CSR). CSRs will be digitally
+        signed as well to ensure integrity when sent to the CA.
+
+        Important: Common name- FQDN. "This must match exactly what you type in your web browser or you will receive a
+        name mismatch error."
+
+        Selecting a CA?
+
+    </p><p>
+        Next, the CA must validate that this certificate request is valid- generally, that the requester actually owns
+        or controls
+        the domain they've requested a certificate for. There are three types of validations that could be performed-
+        domain validation (DV), organization validation (OV), and extended validation (EV). DV is by far the most
+        common- in this case, the CA must ensure that the certificate requester has "effective control of the domain"
+        that the certificate has been generated for (the provided Common Name/FQDN entered when generating the CSR). For
+        OV and EV, the CA must additionally verify the requester's "real-world identity", and will perform validations
+        such as ensuring your company is officially registered within a specific locale and checking information via a phone
+        call to a registered phone number associated with your organization.
+    </p><p>
+        In order to prove control of a domain, CAs might have processes that involve sending you some sort of "challenge" code that will
+        need to be accessible via a specific location at the requested domain, or added to the DNS record associated with the domain.
+        The ACME process (Automatic Certificate Management Environment) works to automate this challenge, and is used by the CA LetsEncrypt.
+        <a href="https://tools.ietf.org/html/rfc8555" target="_blank">The RFC is a great source of information on the challenge process.</a>
+</p><p>
+    One challenge example is an HTTP challenge, where the requester proves it controls a domain name by showing it can create resources on
+    the server listening for requests under that domain. The validator asks the requester to add a file containing a specific string on
+    some specific path- for ACME, this path is ./well-known/acme-challenge/&lt;string value&gt;, with the page result also displaying
+    this string value. The requester must also sign a value using their private key and send this value back to the validator, proving the validator
+    has the correct public key for the requester's private. If the validator is able to access the HTTP resource on the correct domain and decrypt the
+    the sent value using the public key from the CSR, then DV has been completed.
+</p><p>
+    The CA will then create a digitally signed certificate for the requester, which includes the CA's information as well as
+    the requester's public key. The requester can then load this certificate into their web server, so that it is accessible
+    for inbound TLS connection requests.
+    </p>
     <h2>
         SSL/TLS handshake + trusted CAs + cert validation
     </h2>
@@ -92,6 +153,10 @@
     <h2>
         CRL
     </h2>
+    <p>
+        Whenever we talk about an authentication system, it's important to think about the idea of revocation- that is,
+        once we've granted someone trust or privileges, how can we take that trust away if something goes wrong.
+    </p>
     <h2>
         What HTTPS isn't
     </h2>
