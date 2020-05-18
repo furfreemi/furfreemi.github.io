@@ -92,7 +92,9 @@
 </p><p>
     In terms of certificates and digital signatures, root CAs all have 'self-signed' certificates. That is, their certificates are digitally signed by themselves- i.e. the
     same public key contained within their certificate will be used in the digital signing of that certificate. These root CAs in turn are the ones to digitally sign trusted
-    intermediate CA certificates. Finally, these intermediate CAs are the ones to digitally sign leaf site certificates.
+    intermediate CA certificates. Finally, these intermediate CAs are the ones to digitally sign leaf site certificates. Therefore, since we have our trusted root CAs'
+    public keys, we are able to validate their trusted intermediate CA certificates. Similarly, we can use the intermediate CA public keys to validate the
+    certificates of the sites we're actually trying to visit.
 </p><p>
     You can see this chain of trust in practice by visiting a site over HTTPS and clicking the little padlock icon, and viewing certificate information.
     You'll be able to visualize the signing from the root CA down to the leaf certificate.
@@ -140,13 +142,18 @@
     has the correct public key for the requester's private. If the validator is able to access the HTTP resource on the correct domain and decrypt the
     the sent value using the public key from the CSR, then DV has been completed.
 </p><p>
-    The CA will then create a digitally signed certificate for the requester, which includes the CA's information as well as
+    The CA will then create a digitally signed certificate for the requester, which includes the CA's identifying information as well as
     the requester's public key. The requester can then load this certificate into their web server, so that it is accessible
     for inbound TLS connection requests.
     </p>
     <h2>
         SSL/TLS handshake + trusted CAs + cert validation
     </h2>
+    <p>
+        When you visit a website over HTTPS, your browser receives the site's certificate as part of connection initialization.
+        Using the CA information included in the certificate, your browser will try to validate that the CA who signed this certificate
+        is trusted by one of the CAs it trusts.
+    </p>
     <h2>
         Types of SSL Certificates
     </h2>
