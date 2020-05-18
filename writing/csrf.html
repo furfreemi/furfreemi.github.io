@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSRF | lari</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet">
+</head>
+<body>
+<div id="content">
+    <h1>CSRF</h1>
+    <p><b>Cross-Site Request Forgery</b></p>
+    
+    <h2>
+        Intro
+    </h2>
+    <p>
+        Cross-site request forgery occurs when a malicious program or site can cause some unwanted action to occur,
+        taking advantage of a user being authenticated on that site. A classic example is a user logs in to a vulnerable 
+        bank account online portal, does what they need in the portal, and then continues wandering the internet. They end up browsing to a malicious site.
+        Without the user realizing it, the malicious site makes a request to the banking site (say, transferring $1000 to the malicious site 
+        owner) and since the user is still authenticated with that site from their previous login, the bank accepts that request as legitimate.
+    </p>
+
+    <h2>
+        Cookies
+    </h2>
+    <p>
+        In order to understand what can allow CSRF to happen, we first need to understand how user logins are managed via our browsers and the sites we access.
+        In order to allow users to log in once and then access some private page (such as our bank account portal), browsers maintain 'cookies'. 
+        Cookies are small bits of data usually created by a website's server and stored in the browser by sending a response containing a 
+        'Set-Cookie' header. The browser will then store and automatically include this cookie in requests back to the server using a 'Cookie' header. This 
+        allows the server to keep track of which user is sending each request, and supports functionality such as logging into sites, site customization options 
+        (such as a user's language or currency selection), and user tracking. The history behind cookies is that they're a way to add state to the otherwise stateless HTTP.
+    </p>
+    <p>
+        Bringing this back to our bank account portal: when our user logs in to their bank account, they enter a username and password. These values are sent
+        to the server via a web request from our browser, and if they are a valid username + password combination, the server's response will include the 'Set-Cookie'
+        header along with some cookie details. The browser stores this cookie information, and now every time our user takes some action in the banking portal 
+        that triggers a request back to the server, the browser will automatically include this cookie in that request via the 'Cookie' header. This way, the banking
+        server can tell that the requests have come from our user. If the cookie is incorrect or missing from this request back to the server, the server could reject 
+        the request if it requires authentication or authorization- without a valid cookie, it doesn't know or trust who our user is.
+
+        Blind: takes some action against the site; doesn't need to see response
+        
+        Attack vectors:
+        GET requests (e.g. <img>, <iframe>) - which cannot set headers.
+        <form> submitted by a user click - which are limited to a few specific headers.
+        <form> submitted by JavaScript (HTMLFormElement.submit()) - which are limited to a few specific headers.
+
+        Login CSRF: get someone to log into your account and add their credit card details. Prevent using pre-session cookie + token before user is even authorized. 
+        TODO read: https://seclab.stanford.edu/websec/csrf/csrf.pdf
+    </p>
+    <p>
+        There's two issues at play here: first, the server is only relying on the cookie for auth. If the cookie is included in a request, then the request
+        is authorized. This places a huge amount of power into our cookie. The second issue is that our browser is automatically including this cookie in requests,
+        regardless of where the request originates from. The malicious site is able to take advantage of these two behaviors: the server has no way of distinguishing
+        the malicious request from a legitimate user request, so our bank account is toast.
+    </p>
+    <p>
+        Now that we've identified some of the issues that allowed this attack to happen, let's move towards some solutions. To address the first issue, 
+        we could have the browser only include our banking cookie if the request is sent from the banking site (SameSite cookie options). To address the second, 
+        we can explore ways to distinguish malicious requests from legitimate by establishing some secret value known only to our valid origin and our server. The 
+        origin can include this value in each request so that the server can validate and differentiate these legitimate requests from malicious. 
+
+        Also consider:
+        - Re-Authentication (password or stronger)
+        - One-time Token
+        - CAPTCHA
+    </p>
+
+
+    <h2>
+        Tokens
+    </h2>
+    <p>
+        SOP: restrict JavaScript making cross origin requests with custom headers - will trigger preflight
+            - Could theoretically just validate presence of custom header for AJAX calls -> should have originated from same origin (would still need token for forms)
+            - Definitely don't add custom header to CORS policy!
+        
+        'Synchronizer': generate tokens server-side. Generate per session (less secure) or per request (could create issues with back button) and track server
+        side, associated with user. Client includes with each request + server validates- reject request if missing or incorrect (+ terminate user session).
+        Add to hidden fields or custom header (don't use cookie!). Should not include in 'GET' requests (browser history, logs, etc)
+
+        Encrypted token: don't maintain token server-side. Server generates token by encrypting session ID + timestamp (prevent replay). Included as form field 
+        or header in all client requests. Server decrypts + validates (correct session ID compared to currently logged-in user, timestamp not beyond some expiry).
+
+        HMAC token: don't encrypt, instead hash(session ID + timestamp) and concatenate with timestamp. Otherwise same as above.
+
+        Double cookie: on page load, generate separate random cookie for site. Every request includes this cookie value as a form field or param/header. Need to 
+        make sure all subdomains are secured and only accept HTTPS connections, since subdomains can set cookies for parent domains.
+            - Could encrypt or hash token, set as cookie, and then validate token + cookie match server-side
+            - Don't use session ID (prevent exposure to JS via HttpOnly)
+            - Protect login page CSRF: ensure browser + form values are aligned
+    </p>
+
+
+
+    <h2>
+        Cookie values + flags
+    </h2>
+    <p>
+        Cookie values: Cannot contain commas, semicolons, or whitespace. 4096 bytes.
+        
+        Cookie name prefixes: 
+            __Secure- : only accept if marked secure and 'Set-Cookie'-triggering request/response was via HTTPS
+            __Host- : only accept if marked secure, 'Set-Cookie'-triggering request/response was via HTTPS, does NOT include 'domain', and path is '/'
+                - 'domain-locked': doesn't get sent to sub-domains even
+                - Can't be overwritten from another subdomain
+
+        Session cookies: non-persistent/in-memory/transient. Web browsers should delete session cookies when users close their browser. 
+        Indicated by a lack of expiration date (expires (GMT date) or max-age (seconds) values).
+
+        Note that browsers might not actually hold on to cookies through the expires/max-age specification due to memory or privacy constraints.
+        To remove cookies: 'Set-Cookie' with expiration in the past.
+
+        Secure cookies: 'Secure' flag. Will only be sent to server in HTTPS requests (won't be included in HTTP).
+
+        Path: limits scope. 
+            - Will INCLUDE in request only if request path matches or is a subdirectory of the cookie's Path value
+            - '/' includes all paths
+            - If not specified when SET: will be path in the URL of the request
+
+        Domain: will INCLUDE if request sent to exact value of Domain attribute (ex: example.com) or subdomain of Domain attribute (ex: a.example.com) 
+            - If domain specification is missing: uses full domain of request; won't be included to subdomains
+            - Will only SET cookies for request origin domain or a parent domain (a.example.com can set for a.example.com and example.com, 
+            but not b.example.com or b.a.example.com)
+            - Leading '.': cookie will be included to subdomains
+            - Can't set for 'public suffixes' - com, edu, etc.
+
+        Summary:
+        - Ex: Cookie with path '/' and domain 'example.com' will be included for all requests to example.com and its subdomains (a.example.com)
+        - Ex: cookie from a.example.com can set cookie with domain a.example.com OR example.com
+
+        HttpOnly: prevent JavaScript access to cookies ('document.cookie'). Not relevant since CSRF doesn't run code on our page or domain.
+            - Only displays cookies that apply to current document origin (based on path, domain)
+            - Cannot set 'HttpOnly' cookies via JavaScript
+        </p>
+    <h2>
+        SameSite Cookie Options
+    </h2>
+    <p>
+        'Same site' if same second-level and top-level domain (if public suffix + section to the left is the same)
+            - a.example.com and b.example.com: considered to be the same site
+            - ex1.suffix and ex2.suffix: cross-site- see https://publicsuffix.org/learn/ 
+                - ex1.suffixpart1.suffixpart2 and ex2.suffixpart1.suffixpart2: also cross-site
+
+
+        None: include cookies with cross-site and same-site requests
+            - Requires 'Secure' flag
+        Strict: only include cookies to site that set the cookie (TODO: subdomains?)
+            - Not sent on initial page load via link: logged in user won't appear to be logged in on first load 
+                - Ex: clicking private github link would initially fail, even if logged in. On refresh, would work.
+        Lax: included via link loads (anything that triggers domain to appear in URL bar) + when same origin
+            - Good choice for when cookie is relevant for displaying content
+            - Moving towards browser default if SameSite value not specified
+                - In Chrome 80. Can test in FF 69.
+
+    </p>
+    <h2>
+        Origin verification: 'defense in depth'
+    </h2>
+    <p>
+        Compare Origin or Referer headers (source origin) with target origin. If they match, then request is accepted.
+            - Origin + Referer are 'forbidden headers' that only browsers can set
+            - Might be omitted in some cases however
+            - To find target: Consider proxies: make sure target origin can be identified 
+                - Configure server so it knows its own origin value
+                - 'Host' header value (may be changed by proxy)
+                - 'X-Forwarded-Host' header
+        
+    </p>
+    <h2>
+        Double Submit Cookie
+    </h2>
+    <p></p>
+
+    <h2>
+        CORS + CSRF
+    </h2>
+    <p>
+        SOP: same origin policy. Javascript only has access to content downloaded from the origin of the page itself, 
+        unless the other site sends CORS (cross-origin resource sharing) headers to allow the requestor access.
+        - Don't combine CSRF token embedded in page with Access‐Control‐Allow‐Origin: * - else JS of other origin can read response.
+        
+        Same origin vs cross-origin: 
+        - protocol + domain + port
+        - Subdomains are cross-origin (will trigger preflight if not 'simple')
+        https://httptoolkit.tech/will-it-cors/
+
+        CORS: relaxing of same origin policy. If origin is different + browser determines (headers, method, content type) request is not 'simple', 
+        then preflight 'OPTIONS' is triggered. Browser will allow/deny request based on CORS policy response to 'OPTIONS' request.
+        - HTML forms, GETs: 'simple'
+        Preflight always triggered if cross origin and: 
+        - Not GET, POST, or HEAD
+        - Not application/x-www-form-urlencoded, multipart/form-data, or text/plain Content-Type
+
+        Policy: 
+        Send request (but not necessarily read response):
+        - Access-Control-Allow-Origin
+        - Access-Control-Allow-Methods
+        - Access-Control-Allow-Headers
+        - Access-Control-Allow-Credentials: allows cookies cross-origin
+
+        Allow response reading:
+        - Access‐Control‐Allow‐Origin + 'Vary: origin'
+        Allow reading of custom headers:
+        - Access-Control-Expose-Headers
+    </p>
+
+    <h2>
+        CSRF + JWTs
+    </h2>
+    <p>
+
+
+    </p>
+
+    <h2>
+        Session fixation + cookies
+    </h2>
+    <p>
+
+
+    </p>
+
+    <h2>
+        HTTP MITM 
+    </h2>
+    <p>
+        Alternatively, if the parent domain does not use HSTS (header Strict-Transport-Security) with includeSubdomains set
+            - HSTS: tell browsers site should only be accessed over HTTPS. includeSubdomains parameter: applies to all of site's subdomains. Will only be observed
+            if accessed over HTTP
+            - max-age: set to 0 to expire.
+            - preload: include to prevent ever accessing via HTTP. Not official. 
+        a user subject to an active MitM (perhaps connected to an open WiFi 
+        network) could be served a response with a Set-Cookie header from a non-existent sub-domain. The end result would be much the same, with the browser 
+        storing the illegitimate cookie and sending it to all other pages under example.com.
+    </p>
+
+
+</div>
+</body>
+</html>
