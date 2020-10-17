@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PCI + AWS | lari</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet">
+</head>
+<body>
+<div id="content">
+    <h1>PCI + AWS</h1>
+    <p><b>Acronyms:</b></p>
+    <p>PCI = Payment Card Industry</p>
+    <p>DSS = Data Security Standard</p>
+    <p>PAN = Primary Account Number (Credit Card number)</p>
+    <p>CHD = Cardholder data (PAN, cardholder name, expiration date, service code</p>
+    <p>CDE = Cardholder data environment</p>
+    <p>Sensitive auth data = full track data (mag strip or chip data), CAV2/CVC2/CVV/CID, PIN/PIN blocks. This data must be protected and CANNOT be stored after authorization. CVV = main form of authentication in 'card not present' transactions.</p>
+    <p>QSA = Qualified Security Assessor</p>
+    <p>ISA = Internal Security Assessor</p>
+
+
+
+    <h2>PCI DSS Requirements</h2>
+    <p>12 requirements, across 7 domains:
+        - Build and maintain a secure network and systems:
+            - Install and maintain a firewall config to protect cardholder data
+            - Do not use vendor-supplied defaults for system passwords and other security parameters
+        - Protect cardholder data
+            - Protect stored cardholder data
+            - Encrypt transmission of cardholder data across open, public networks
+        - Maintain a vuln managagement program
+            - Protect all systems against malware and regularly update antivirus software
+            - Develop and maintain secure systems and applications
+        - Implement strong access control measures
+            - Restrict access to cardholder data by business 'need-to-know'
+            - Identify and auth access to system components
+            - Restrict physical access to cardholder data
+        - Regularly monitor and test networks 
+            - Track and monitor all access to network resources and cardholder data
+            - Regularly test security systems and processes
+        - Maintain an infosec policy
+            - Maintain a policy that addresses infosec for all personnel
+
+        'Requirement 0' prereq: define scope and segmentation boundaries
+            - What is in and out of scope for PCI? How to maintain segmentation?
+            - Scope = people, processes, and technologies that can impact security of CHD
+            - Anything in scope must meet applicable PCI DSS requirements
+            - Reduce security surface area -> reduce compliance overhead
+    </p>
+
+    <h2>Scoping and Segmentation</h2>
+    <p>
+        Three scopes:
+            - CDE systems (handle CHD)
+            - Connected-to or security-impacting systems: systems that have an impact on CDE- direct or indirect filtered connectivity to CDE systems, can affect config or security of CDE systems, or support PCI-DSS requirements
+            - Out-of-scope: no access or impact to CDE systems
+
+        Segmentation:
+            - Network isolation
+            - Data control
+
+        Depends on service type:
+            - Infrastructure: EC2, ECS, EKS - segment via network isolation
+            - Containerized: RDS, Fargate - segment via network isolation and data control
+            - Abstracted: Lambda, S3 - segment via data control
+    </p>
+    <h2>Segmentation Boundaries on AWS</h2>
+    <p>
+        3 layers possible:
+            - Account
+                - Logical isolation of resources from other accounts ('by design' isolation - don't need to validate on your own; AWS has already passed assessment)
+                - Use AWS Organizations and SCPs
+                - Have dedicated account for CDE systems
+                - Have accounts for shared services, logging, security, and connected-to
+                - Have account(s) for out-of-scope
+                - Master account for managing
+                - Non-PCI OU and Core OU, with nested PCI OU.
+            - Network
+                - SG as segmentation boundaries- stateful virtual firewall
+                    - Create in-scope and out-of-scope SGs. Use within connected-to to bridge to in-scope, out-of-scope 
+                - Does NOT meet PCI DSS requrements by default (open outbound connection)
+                - Could us third-party firewalls
+            - Application
+                - In scope depending on data handled/stored
+                - Application logic to support segmentation
+                - Utilize API Gateway to support segmentation between API calls
+                - Containers:
+                    - Group into related clusters (EC2 launch type) or tasks (Fargate)
+                    - Use SGs for cluster/task isolation
+        
+        Don't forget to consider communications between systems if utilizing hybrid approach.
+        Never put more in one account than you'd be willing to have compromised at one time.
+        Recommendation:
+        - Don't use root organization account for anything. Don't use root account for anything.
+        - Route53: different account.
+        - KMS: different account.
+        - Backups: different account and one-way writing
+        See multi account vid: https://www.youtube.com/watch?v=_JGXdOyVugg&list=PLCPCP1pNWD7OBQvDY7vLCFhxWxok9DITl&index=2
+
+    </p>
+    <h2>Segmentation Validation</h2>
+    <p>
+        Requirement 11.3.4: perform a pen test at least annually (biannually for service providers) and after any changes to segmentation controls.
+            - Verify all out-of-scope LANs truly have no CDE access
+            - Each unique segmentation method should be tested to ensure all security controls are functioning as intended
+        
+        AWS examples:
+            - Account segmentation: validated as part of AWS PCI assessment
+            - Network: validate SG ACL via network testing
+            - AWS API: validate app logic
+            - Custom API: validate network isolation and app logic 
+    </p>
+    <h2>Lifecycle Management</h2>
+    <p>
+        - Identify: segmentation boundaries, controls
+        - Protect: ensure boundaries are implemented
+        - Detect: detect any changes to segmentation boundaries
+        - Respond: work/automate to ensure controls are back up
+        - Recover: RCA and make changes to processes
+    </p>
+    <h2>AWS monitoring</h2>
+    <p>
+        - CloudTrail
+        - Inspector
+        - VPC Flow Logs
+        - AWS Config
+    </p>
+
+
+    Resources: 
+    https://www.youtube.com/watch?v=kH8_9bgRTbA
+    https://d1.awsstatic.com/whitepapers/pci-dss-scoping-on-aws.pdf
+</div>
+</body>

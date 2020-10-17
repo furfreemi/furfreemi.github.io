@@ -2,3 +2,4 @@
 node_modules/
 package.json
 .idea/
+**/*.code-workspace
